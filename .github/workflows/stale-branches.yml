@@ -1,0 +1,49 @@
+# Save this file to: .github/workflows/stale-branches.yml in your repo
+name: Stale Feature Branch Report
+
+on:
+  schedule:
+    # Every Monday at 6:00 AM UTC — edit to taste
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: read
+  issues: write   # only needed if you want it to open/update an issue
+
+jobs:
+  find-stale-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run stale branch finder
+        id: scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python find_stale_branches.py --repo "${{ github.repository }}" --days 30 --format table | tee report.txt
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-branch-report
+          path: report.txt
+
+      # Optional: open/update a tracking issue with the results instead of
+      # (or in addition to) the artifact above. Uncomment to enable.
+      # - name: Post results as an issue
+      #   uses: peter-evans/create-issue-from-file@v5
+      #   with:
+      #     title: "Stale feature branch report"
+      #     content-filepath: report.txt
+      #     labels: housekeeping
