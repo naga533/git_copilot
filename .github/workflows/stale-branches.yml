@@ -31,8 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python find_stale_branches.py --repo "${{ github.repository }}" --days 30 --format table | tee report.txt
-
+              python .github/workflows/find_stale_branches.py --repo "${{ github.repository }}" --days 30 --format table | tee report.txt
       - name: Upload report as artifact
         uses: actions/upload-artifact@v4
         with:
